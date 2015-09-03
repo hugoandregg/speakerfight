@@ -7,7 +7,8 @@ script:
   - coverage run manage.py test
 after_success:
   - coveralls
-  - if [$TRAVIS_BRANCH == "bugfix/travis-ci-deploy"]; then
+  - echo $TRAVIS_BRANCH
+  - if [$TRAVIS_BRANCH == "master"]; then
       fab deploy;
     fi
 env:
