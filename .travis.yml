@@ -1,13 +1,21 @@
 sudo: false
 language:
-  - python
+- python
 install:
-  - pip install -r requirements.txt
+- pip install -r requirements.txt
 script:
-  - coverage run manage.py test
+- coverage run manage.py test
 after_success:
-  - coveralls
-  # - if ([ "$TRAVIS_BRANCH" == "master" ]); then fab deploy; fi
+- coveralls
 env:
   global:
-    - secure: JFAH2i22AtBYLTpgzecYdv4aDuR5SIDAqgmZ6Vc5hx9GrvXs2W//NeMXPG6rTJhQoFfFUrko3Zjnasefm+CX+hJ/ZtwsgMgZlydqcEsVsPZrT6MQY6a0XIkgOKBsuZAbzztC/B8hiTnIiCSM00BKywprT/rM56u3AEGh4oJhMR0=
+  - secure: JFAH2i22AtBYLTpgzecYdv4aDuR5SIDAqgmZ6Vc5hx9GrvXs2W//NeMXPG6rTJhQoFfFUrko3Zjnasefm+CX+hJ/ZtwsgMgZlydqcEsVsPZrT6MQY6a0XIkgOKBsuZAbzztC/B8hiTnIiCSM00BKywprT/rM56u3AEGh4oJhMR0=
+deploy:
+  provider: openshift
+  user: luanfonceca
+  password:
+    secure: lBhtKtO2JwLbo5qsMNdiaYYKeomq52nNrlZFoc281HgVeIWrBBpGXJnBO9H3J1tsl7IS2vzZA0Bmmc/Xn42SiPHii3YpghXN1m09vDYHTA1TfFS+vJ9eWPKE8y5QphBJqOe5PzcMq9Ncw/QrM1mq7jL0CABSZeQtvgmX3MbdCis=
+  app: speakerfight
+  domain: speakerfight-luanfonceca.rhcloud.com
+  on:
+    repo: luanfonceca/speakerfight
