@@ -15,17 +15,28 @@ from django.conf import global_settings
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+import socket
+
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+
+OPENSHIFT_ENV = 'OPENSHIFT_REPO_DIR' in os.environ
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'hchgjid4s$nhe_@3*ildx480lpld*t$cs*#qvg((j_+g4zr++8'
+if OPENSHIFT_ENV:
+    SECRET_KEY = os.environ['OPENSHIFT_SECRET_TOKEN']
+else:
+    SECRET_KEY = 'hchgjid4s$nhe_@3*ildx480lpld*t$cs*#qvg((j_+g4zr++8'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = not OPENSHIFT_ENV
+DEBUG = DEBUG or os.getenv("debug", "false").lower() == "true"
+
+if OPENSHIFT_ENV and DEBUG:
+    print("*** Warning - Debug mode is on ***")
 
 TEMPLATE_DEBUG = True
 
@@ -38,13 +49,14 @@ TEMPLATE_DIRS = [
 # Absolute path to the directory static files should be collected to.
 STATICFILES_DIRS = []
 
-STATIC_ROOT = os.path.join(BASE_DIR, "static")
+STATIC_ROOT = os.path.join(BASE_DIR, 'wsgi', 'static')
+
 DEFAULT_FROM_EMAIL = NO_REPLY_EMAIL = 'noreply@speakerfight.com'
 
-ALLOWED_HOSTS = [
-    "speakerfight.com",
-]
-
+if OPENSHIFT_ENV:
+    ALLOWED_HOSTS = [os.environ['OPENSHIFT_APP_DNS'], socket.gethostname()]
+else:
+    ALLOWED_HOSTS = ['speakerfight.com']
 
 # Application definition
 
@@ -93,12 +105,26 @@ EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 # Database
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'db.sqlite3'
+if OPENSHIFT_ENV:
+    if "OPENSHIFT_POSTGRESQL_DB_USERNAME" in os.environ:
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql_psycopg2',
+                'NAME': os.environ['OPENSHIFT_APP_NAME'],
+                'USER': os.environ['OPENSHIFT_POSTGRESQL_DB_USERNAME'],
+                'PASSWORD': os.environ['OPENSHIFT_POSTGRESQL_DB_PASSWORD'],
+                'HOST': os.environ['OPENSHIFT_POSTGRESQL_DB_HOST'],
+                'PORT': os.environ['OPENSHIFT_POSTGRESQL_DB_PORT'],
+            }
+        }
+else:
+    # stock django, local development.
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
     }
-}
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
